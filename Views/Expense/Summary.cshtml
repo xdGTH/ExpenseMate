@@ -2,7 +2,7 @@
 @model IEnumerable<ExpenseMate.Models.Expense>
 @{
     ViewBag.Title = "Monthly Summary";
-    var categories = ViewBag.Categories as List<string>;
+    var categories = ((List<SelectListItem>)ViewBag.Categories)?.Select(c => c.Text).ToList();
     var amounts = ViewBag.Amounts as List<decimal>;
 }
 
@@ -173,6 +173,10 @@
     <script>
         const categories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categories));
         const amounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(amounts));
+
+        console.log('Categories:', categories); // Debug log
+        console.log('Amounts:', amounts); // Debug log
+
 
         const ctx = document.getElementById('expenseChart').getContext('2d');
         const expenseChart = new Chart(ctx, {
