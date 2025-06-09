@@ -1,0 +1,83 @@
+﻿@{
+    Layout = null;
+}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Expense Form</title>
+<link href="~/StyleSheet2.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="form-container">
+        <h2 class="form-title">Add New Expense</h2>
+
+        <form method="post" asp-controller="Expense" asp-action="WriteExpenses" id="expenseForm">
+            <div class="row">
+                <div class="input-group">
+                    <label class="filter-label" for="title">Title</label>
+                    <input type="text" name="Title" id="title" class="filter-input" placeholder="Enter expense title" required />
+                </div>
+
+                <div class="input-group">
+                    <label class="filter-label" for="amount">Amount</label>
+                    <input type="number" name="Amount" id="amount" class="filter-input" placeholder="0.00" step="0.01" required />
+                </div>
+
+                <div class="input-group">
+                    <label class="filter-label" for="category">Category</label>
+                    <input type="text" name="Category" id="category" class="filter-input" placeholder="Select or enter category" required />
+                </div>
+            </div>
+
+            <div class="btn-container">
+                <button type="submit" class="btn btn-primary">
+                    Add Expense
+                </button>
+            <a href="~/expense/summary" class="back-summary">Back to Summary</a>
+            </div>
+        </form>
+        
+    </div>
+
+    <script>
+        // Add some interactive behavior
+        document.getElementById('expenseForm').addEventListener('submit', function(e) {
+            const submitBtn = document.querySelector('.btn-primary');
+            submitBtn.classList.add('loading');
+            submitBtn.innerHTML = 'Adding...';
+
+            // Remove loading state after form submission (you'd handle this server-side normally)
+            setTimeout(() => {
+                submitBtn.classList.remove('loading');
+                submitBtn.innerHTML = 'Add Expense';
+            }, 2000);
+        });
+
+        // Add floating label effect
+        document.querySelectorAll('.filter-input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+
+            input.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.parentElement.classList.remove('focused');
+                }
+            });
+        });
+
+        // Add subtle hover effects to input groups
+        document.querySelectorAll('.input-group').forEach(group => {
+            group.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-1px)';
+            });
+
+            group.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>

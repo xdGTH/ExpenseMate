@@ -1,0 +1,130 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@model IEnumerable<ExpenseMate.Models.Expense>
+
+
+<h2>Monthly Summary</h2>
+<p><strong>Total this month: Rs</strong> @ViewBag.Total.ToString()</p>
+
+
+<form asp-action="Index" asp-controller="Expense" method="get">
+
+    <div class="filters-section">
+        <div class="filters-header">
+            <h3 class="filters-title">
+                <i class="fas fa-filter"></i>
+                Filter Transactions
+            </h3>
+        </div>
+
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label class="filter-label">From Date</label>
+                @if(ViewBag.fromDate != null)
+                {
+                    <input type="date" name="fromDate" class="filter-input" value="@ViewBag.fromDate.ToString("MM/dd/yyy")" />
+                }
+                else
+                {
+                    <input type="date" name="fromDate" class="filter-input" />
+                }
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">To Date</label>
+                @if(@ViewBag.toDate != null)
+                {
+                    <input type="date" name="toDate" class="filter-input" value="@ViewBag.toDate.ToString("MM/dd/yyyy")" />
+                }
+                else
+                {
+                    <input type="date" name="toDate" class="filter-input" />
+                }
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Category</label>
+                <select name="categoryFilter" class="filter-input" asp-items="ViewBag.Categories">
+                    <option value="">-- All --</option>
+                    @foreach (var item in ViewBag.Categories)
+                    {
+                        if (item.Text == ViewBag.Category)
+                        {
+                            <option value="@item.Value" selected="selected">@item.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+
+            <div class="filter-group">
+                <div class="filter-buttons">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<form asp-action="ExportToCsv" method="get" class="mt-2">
+    <div class="export">
+        <input type="hidden" name="categoryFilter" value="@HttpContextAccessor.HttpContext.Request.Query["categoryFilter"]" />
+        <input type="hidden" name="fromDate" value="@HttpContextAccessor.HttpContext.Request.Query["fromDate"]" />
+        <input type="hidden" name="toDate" value="@HttpContextAccessor.HttpContext.Request.Query["toDate"]" />
+        <button type="submit" class="btn btn-secondary">Export to CSV</button>
+    </div>
+</form>
+
+<div class="table-container">
+    @* <div class="table-header">
+                    <h3 class="table-title">Recent Transactions</h3>
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Add New
+                    </a>
+                </div> *@
+
+    <div class="table-responsive">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    @await Html.PartialAsync("_GridHeaderColumn", new ViewDataDictionary(ViewData)
+                    {
+                    {"ColumnName", nameof(Expense.Date)},
+                    {"DisplayName", "Date"}
+                    })
+                    <th>Title</th>
+                    <th>Category</th>
+                    @await Html.PartialAsync("_GridHeaderColumn", new ViewDataDictionary(ViewData)
+                    {
+                    {"ColumnName", nameof(Expense.Amount)},
+                    {"DisplayName", "Amount"}
+                    })
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Date.ToString("yyyy-MM-dd")</td>
+                        <td>@item.Title</td>
+                        <td><span class="category-badge">@item.Category</span></td>
+                        <td class="expense-amount">Rs. @item.Amount.ToString()</td>
+                        <td>Expense</td>
+                        @* <td>
+                            <i class="fas fa-edit" style="color: #4facfe; cursor: pointer; margin-right: 1rem;"></i>
+                            <i class="fas fa-trash" style="color: #ff6b6b; cursor: pointer;"></i>
+                        </td> *@
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

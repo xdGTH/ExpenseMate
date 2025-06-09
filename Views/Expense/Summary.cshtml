@@ -1,0 +1,193 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@model IEnumerable<ExpenseMate.Models.Expense>
+@{
+    ViewBag.Title = "Monthly Summary";
+    var categories = ViewBag.Categories as List<string>;
+    var amounts = ViewBag.Amounts as List<decimal>;
+}
+
+<h2>Monthly Summary</h2>
+
+<div style="width: 250px; height: 250px;">
+    <canvas id="expenseChart" width="100" height="100"></canvas>
+</div>
+<br />
+
+
+<!-- Dashboard Content -->
+<div class="dashboard-content">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-value">@ViewBag.Total</div>
+                    <div class="stat-label">Total Expenses</div>
+                </div>
+                <div class="stat-icon expenses">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+            </div>
+        </div>
+
+        @* <div class="stat-card">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-value">$5,200</div>
+                    <div class="stat-label">Total Income</div>
+                </div>
+                <div class="stat-icon income">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-value">$2,750</div>
+                    <div class="stat-label">Balance</div>
+                </div>
+                <div class="stat-icon balance">
+                    <i class="fas fa-wallet"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-value">156</div>
+                    <div class="stat-label">Transactions</div>
+                </div>
+                <div class="stat-icon transactions">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+            </div>
+        </div> *@
+    </div>
+</div>
+
+<!-- Filters Section -->
+<form asp-action="Index" asp-controller="Expense" method="get">
+
+    <div class="filters-section">
+        <div class="filters-header">
+            <h3 class="filters-title">
+                <i class="fas fa-filter"></i>
+                Filter Transactions
+            </h3>
+        </div>
+
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label class="filter-label">From Date</label>
+                <input type="date" name="fromDate" class="filter-input" />
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">To Date</label>
+                <input type="date" name="toDate" class="filter-input" />
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Category</label>
+                <select name="categoryFilter" class="filter-input" asp-items="ViewBag.Categories">
+                    <option value="">-- All --</option>
+                </select>
+            </div>
+
+
+            <div class="filter-group">
+                <div class="filter-buttons">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<form asp-action="ExportToCsv" method="get" class="mt-2">
+    <div class="export">
+        <input type="hidden" name="categoryFilter" value="@HttpContextAccessor.HttpContext.Request.Query["categoryFilter"]" />
+        <input type="hidden" name="fromDate" value="@HttpContextAccessor.HttpContext.Request.Query["fromDate"]" />
+        <input type="hidden" name="toDate" value="@HttpContextAccessor.HttpContext.Request.Query["toDate"]" />
+        <button type="submit" class="btn btn-secondary">Export to CSV</button>
+    </div>
+</form>
+
+
+<div class="table-container">
+    @* <div class="table-header">
+                    <h3 class="table-title">Recent Transactions</h3>
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Add New
+                    </a>
+                </div> *@
+
+    <div class="table-responsive">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    @await Html.PartialAsync("_GridHeaderColumn", new ViewDataDictionary(ViewData)
+                    {
+                    {"ColumnName", nameof(Expense.Date)},
+                    {"DisplayName", "Date"}
+                    })
+                    <th>Title</th>
+                    <th>Category</th>
+                    @await Html.PartialAsync("_GridHeaderColumn", new ViewDataDictionary(ViewData)
+                    {
+                    {"ColumnName", nameof(Expense.Amount)},
+                    {"DisplayName", "Amount"}
+                    })
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Date.ToString("yyyy-MM-dd")</td>
+                        <td>@item.Title</td>
+                        <td><span class="category-badge">@item.Category</span></td>
+                        <td class="expense-amount">Rs. @item.Amount.ToString()</td>
+                        <td>Expense</td>
+                        @* <td>
+                            <i class="fas fa-edit" style="color: #4facfe; cursor: pointer; margin-right: 1rem;"></i>
+                            <i class="fas fa-trash" style="color: #ff6b6b; cursor: pointer;"></i>
+                        </td> *@
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const categories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categories));
+        const amounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(amounts));
+
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        const expenseChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: categories, // Real category names here
+                datasets: [{
+                    data: amounts,
+                    backgroundColor: [
+                        '#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#17a2b8',
+                        '#fd7e14', '#20c997', '#6610f2', '#e83e8c'
+                    ],
+                    borderWidth: 1
+                }]
+            }
+        });
+    </script>
+}

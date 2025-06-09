@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - ExpenseMate</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="~/StyleSheet1.css" rel="stylesheet" />
+
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="~/home/index" class="sidebar-brand">
+                <i class="fas fa-wallet"></i>
+                ExpenseMate
+            </a>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-item">
+                <a href="~/Home/Index" class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Home" ? "active" : "")">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="~/Expense/Summary" class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Expense" && ViewContext.RouteData.Values["Action"].ToString() == "Summary" ? "active" : "")">
+                    <i class="fas fa-chart-bar"></i>
+                    Summary
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="~/Expense/WriteExpenses" class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Expense" && ViewContext.RouteData.Values["Action"].ToString() == "WriteExpenses" ? "active" : "")">
+                    <i class="fas fa-plus-circle"></i>
+                    Add an Expense
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="~/auth/logout" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">Dashboard</h1>
+            </div>
+            <div class="user-info">
+                @* <div class="user-avatar"></div> *@
+                <span>@ViewBag.UserName</span>
+            </div>
+        </div>
+        <div>
+            @RenderBody()
+        </div>
+
+
+    </main>
+
+    <script>
+                // Sidebar Toggle Functionality
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        sidebarToggle.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                // Mobile behavior
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            } else {
+                // Desktop behavior
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            }
+        });
+
+        // Close sidebar when clicking overlay on mobile
+        sidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            }
+        });
+
+        // Navigation link active state - FIXED VERSION
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        // Set active state based on current URL
+        function setActiveNavLink() {
+            const currentPath = window.location.pathname.toLowerCase();
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                const linkPath = link.getAttribute('href').toLowerCase();
+
+                // Check if current path matches the link
+                if (currentPath === linkPath || currentPath.includes(linkPath)) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Set active state on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setActiveNavLink();
+        });
+
+        // Optional: Add click handler for visual feedback (without preventing navigation)
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                // Remove active class from all links
+                navLinks.forEach(l => l.classList.remove('active'));
+                // Add active class to clicked link
+                this.classList.add('active');
+
+                // Note: We're NOT calling e.preventDefault() here, so navigation will work
+                // The server will handle the routing and page reload
+            });
+        });
+    </script>
+    @RenderSection("Scripts", required: false)
+    @RenderSection("ScriptsLogin", required: false)
+</body>
+</html>

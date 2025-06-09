@@ -1,0 +1,26 @@
+﻿@if(ViewBag.sortBy == ViewBag.ColumnName && ViewBag.sortOrder == "ASC")
+{
+    <th>
+        <a href="~/expense/summary?sortBy=@(ViewBag.ColumnName)&sortOrder=DESC">
+            @ViewBag.DisplayName
+        </a>
+        <i class="fa-solid fa-sort-up"></i>
+    </th>
+}
+else if (ViewBag.sortBy == ViewBag.ColumnName && ViewBag.sortOrder == "DESC")
+{
+    <th>
+        <a href="~/expense/summary?sortBy=@(ViewBag.ColumnName)&sortOrder=ASC">
+            @ViewBag.DisplayName
+        </a>
+        <i class="fa-solid fa-sort-down"></i>
+    </th>
+}
+else
+{
+    <th>
+        <a href="~/expense/summary?sortBy=@(ViewBag.ColumnName)&sortOrder=ASC">
+            @ViewBag.DisplayName
+        </a>
+    </th>
+}

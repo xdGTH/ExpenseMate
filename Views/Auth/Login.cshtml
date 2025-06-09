@@ -1,0 +1,223 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Login</title>
+    <link href="~/StyleSheet.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1 class="login-title">Welcome Back</h1>
+            <p class="login-subtitle">Sign in to your account</p>
+        </div>
+
+        <form id="loginForm" novalidate asp-action="Login" asp-controller="Auth" method="post">
+            <div class="form-group">
+                <input type="email"
+                       id="email"
+                       name="email"
+                       class="form-input"
+                       placeholder="Email address"
+                       required
+                       autocomplete="email">
+                <div class="error-message" id="emailError"></div>
+            </div>
+
+            <div class="form-group">
+                <input type="password"
+                       id="password"
+                       name="password"
+                       class="form-input"
+                       placeholder="Password"
+                       required
+                       autocomplete="current-password">
+                
+                <div class="error-message" id="passwordError"></div>
+                <div class="strength-meter" id="strengthMeter">
+                    <div class="strength-fill" id="strengthFill"></div>
+                </div>
+            </div>
+
+            <button type="submit" class="login-button" id="loginButton">
+                <div class="loading-spinner" id="loadingSpinner"></div>
+                <span id="buttonText">Sign In</span>
+            </button>
+        </form>
+
+        <div class="register-link">
+            Don't have an account? <a asp-controller="Auth" asp-action="Register" method="get" id="registerLink">Register Here</a>
+        </div>
+    </div>
+
+    @section ScriptsLogin {
+        <script>
+            class LoginValidator {
+                constructor() {
+                    this.form = document.getElementById('loginForm');
+                    this.passwordInput = document.getElementById('password');
+                    this.submitButton = document.getElementById('loginButton');
+                    this.loadingSpinner = document.getElementById('loadingSpinner');
+                    this.buttonText = document.getElementById('buttonText');
+
+                    this.initEventListeners();
+                }
+
+                initEventListeners() {
+                    this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+                    this.passwordInput.addEventListener('blur', () => this.validatePassword());
+                    this.passwordInput.addEventListener('input', () => this.checkPasswordStrength());
+
+                    // Real-time validation
+                    this.passwordInput.addEventListener('input', () => this.clearError('password'));
+                }
+
+
+
+                validatePassword() {
+                    const password = this.passwordInput.value;
+
+                    if (!password) {
+                        this.showError('password', 'Password is required');
+                        return false;
+                    }
+
+                    if (password.length < 8) {
+                        this.showError('password', 'Password must be at least 8 characters long');
+                        return false;
+                    }
+
+                    this.showSuccess('password');
+                    return true;
+                }
+
+                checkPasswordStrength() {
+                    const password = this.passwordInput.value;
+                    const strengthMeter = document.getElementById('strengthMeter');
+                    const strengthFill = document.getElementById('strengthFill');
+
+                    if (password.length === 0) {
+                        strengthMeter.style.display = 'none';
+                        return;
+                    }
+
+                    strengthMeter.style.display = 'block';
+
+                    let score = 0;
+                    if (password.length >= 8) score++;
+                    if (/[a-z]/.test(password)) score++;
+                    if (/[A-Z]/.test(password)) score++;
+                    if (/[0-9]/.test(password)) score++;
+                    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+                    strengthFill.className = 'strength-fill';
+                    if (score <= 2) strengthFill.classList.add('strength-weak');
+                    else if (score === 3) strengthFill.classList.add('strength-fair');
+                    else if (score === 4) strengthFill.classList.add('strength-good');
+                    else strengthFill.classList.add('strength-strong');
+                }
+
+                showError(field, message) {
+                    const input = document.getElementById(field);
+                    const errorElement = document.getElementById(field + 'Error');
+
+                    input.classList.add('error');
+                    input.classList.remove('success');
+                    errorElement.textContent = message;
+                    errorElement.classList.add('show');
+                }
+
+                showSuccess(field) {
+                    const input = document.getElementById(field);
+                    const errorElement = document.getElementById(field + 'Error');
+
+                    input.classList.add('success');
+                    input.classList.remove('error');
+                    errorElement.classList.remove('show');
+                }
+
+                clearError(field) {
+                    const input = document.getElementById(field);
+                    const errorElement = document.getElementById(field + 'Error');
+
+                    input.classList.remove('error');
+                    errorElement.classList.remove('show');
+                }
+
+
+                async handleSubmit(e) {
+                    e.preventDefault();
+
+                    const emailValid = this.validateEmail();
+                    const passwordValid = this.validatePassword();
+
+                    if (!emailValid || !passwordValid) {
+                        return;
+                    }
+
+                    this.showLoading(true);
+
+                    // Simulate API call
+                    try {
+                        await this.simulateLogin();
+                        this.showSuccess('login');
+                    } catch (error) {
+                        this.showError('password', 'Invalid email or password');
+                    } finally {
+                        this.showLoading(false);
+                    }
+                }
+
+                showLoading(isLoading) {
+                    if (isLoading) {
+                        this.submitButton.disabled = true;
+                        this.loadingSpinner.style.display = 'inline-block';
+                        this.buttonText.textContent = 'Signing In...';
+                    } else {
+                        this.submitButton.disabled = false;
+                        this.loadingSpinner.style.display = 'none';
+                        this.buttonText.textContent = 'Sign In';
+                    }
+                }
+
+                async simulateLogin() {
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            // Simulate random success/failure for demo
+                            Math.random() > 0.3 ? resolve() : reject();
+                        }, 2000);
+                    });
+                }
+
+                showSuccess(type) {
+                    if (type === 'login') {
+                        this.buttonText.textContent = 'Success! Redirecting...';
+                        this.submitButton.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+
+                        setTimeout(() => {
+                            alert('Login successful! Redirecting to dashboard...');
+                            // window.location.href = '/dashboard';
+                        }, 1000);
+                    }
+                }
+            }
+
+            // Initialize the validator when DOM is loaded
+            document.addEventListener('DOMContentLoaded', () => {
+                new LoginValidator();
+
+                // Handle register link
+                document.getElementById('registerLink').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    alert('Redirecting to registration page...');
+                    // In a real app: window.location.href = '/register';
+                });
+            });
+        </script>
+    }
+</body>
+</html>
